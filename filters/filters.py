@@ -1,9 +1,10 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
+from sqlalchemy import Boolean
 
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 
-from database.table_processing import check_user_id
+from database.worker import WorkerDB
 
 from config_data.config import ConfigBot, load_config_bot
 
@@ -20,9 +21,10 @@ class IsAdmins(BaseFilter):
         return message.from_user.id in self.admin_ids
 
 
-# фильтр проверяет добавлен ли пользователь в базу ранее
+# фильтр проверяет добавлен ли ранее пользователь в базу ранее
 class IsOldUser(BaseFilter):
     async def __call__(self, message: Message, db_engine: AsyncEngine) -> bool:
+        wk = WorkerDB(db_engine)
         user_id = message.from_user.id
-        result = await check_user_id(db_engine, user_id)
+        result: bool = await wk.check_user_id(user_id)
         return result
